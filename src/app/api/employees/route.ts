@@ -21,11 +21,11 @@ export async function GET() {
 
     const formattedEmployees = employees.map(emp => ({
       id: emp.id,
-      name: emp.name,
+      name: emp.profile?.full_name || "Unknown",
       email: emp.email,
-      phone: emp.profile?.phone || "-",
-      nik: emp.profile?.nik || "-",
-      bank_accounts: emp.profile?.bank_accounts || "-"
+      phone: "-", // Not in schema
+      nik: emp.profile?.encrypted_nik || "-",
+      bank_accounts: emp.profile?.encrypted_bank_details || "-"
     }));
 
     return NextResponse.json(formattedEmployees);
@@ -52,15 +52,14 @@ export async function POST(req: Request) {
 
     const newUser = await prisma.user.create({
       data: {
-        name,
         email,
         password_hash: hashedPassword,
         role: "EMPLOYEE",
         profile: {
           create: {
-            phone,
-            nik,
-            bank_accounts
+            full_name: name,
+            encrypted_nik: nik,
+            encrypted_bank_details: bank_accounts
           }
         }
       }
