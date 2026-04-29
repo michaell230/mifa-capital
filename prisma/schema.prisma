@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
+  password_hash String
+  role          String       @default("EMPLOYEE")
+  created_at    DateTime     @default(now())
+  profile       UserProfile?
+  assets        Asset[]
+  transactions  Transaction[]
+}
+
+model UserProfile {
+  id                     String  @id @default(uuid())
+  user_id                String  @unique
+  user                   User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  full_name              String
+  encrypted_nik          String?
+  encrypted_bank_details String?
+  iv                     String? // Initialization Vector for decryption
+}
+
+model Asset {
+  id              String   @id @default(uuid())
+  user_id         String
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  name            String
+  category        String   // e.g., Properti, Kendaraan, Elektronik, Lainnya
+  estimated_value Float
+  purchase_date   DateTime?
+  created_at      DateTime @default(now())
+}
+
+model Transaction {
+  id               String   @id @default(uuid())
+  user_id          String
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  type             String   // 'DEPOSIT' or 'WITHDRAW'
+  amount           Float
+  note             String?
+  transaction_date DateTime @default(now())
+  created_at       DateTime @default(now())
+}
